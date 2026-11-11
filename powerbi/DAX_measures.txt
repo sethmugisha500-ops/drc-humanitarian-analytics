@@ -1,0 +1,17 @@
+-- Create a proper star schema before adding measures.
+People in Need = SUM(Needs[people_in_need])
+People Reached = SUM(Response[people_reached])
+Coverage % = DIVIDE([People Reached], [People in Need], 0)
+Funding Requirements = SUM(Funding[requirements_usd])
+Funding Received = SUM(Funding[received_usd])
+Funding Gap = MAX(0, [Funding Requirements] - [Funding Received])
+Funding Coverage % = DIVIDE([Funding Received], [Funding Requirements], 0)
+Active Interventions = SUM(Response[intervention_count])
+Displaced Population = SUM(Needs[displaced_population])
+Average Severity = AVERAGE(Needs[severity_index])
+Cost per Person Reached = DIVIDE(SUM(Response[response_cost_usd]), [People Reached], 0)
+Priority Index =
+VAR NeedPressure = DIVIDE([People in Need], MAXX(ALLSELECTED(Geography[territory]), [People in Need]), 0)
+VAR SeverityPressure = DIVIDE([Average Severity], 5, 0)
+VAR CoveragePenalty = 1 - [Coverage %]
+RETURN ROUND((NeedPressure*0.45 + SeverityPressure*0.35 + CoveragePenalty*0.20)*100,1)
